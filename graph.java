@@ -7,42 +7,13 @@ class OvalPrimitive extends JComponent{
 	OvalPrimitive(int index){
 		setOpaque(true);
 		setForeground(Color.white);
-		pathh1 = 0;
-		pathw1 = 0;
-		pathh2 = 0;
-		pathw2 = 0;
 		this.nodeindex = index;
-		updatemeasures();
+		SidesNumbers = new ArrayList<>();
 	}
+	public ArrayList <Integer> SidesNumbers;
 	private int nodeindex;
 	private int parentnode;
 	private boolean connected;
-	int[] firstpath;
-	int[] lastpath;
-	public int pathh1;
-	public int pathw1;
-	public int pathh2;
-	public int pathw2;
-	public int upheight;
-	public int downheight;
-	public int leftwidth;
-	public int rightwidth;
-	public void updatemeasures(){
-//	if(!connected || nodeindex == parentnode){
-			if(getWidth()<getHeight()){
-					upheight = getHeight()/4;
-					downheight = getWidth()/2;
-					leftwidth = getWidth()/4;
-					rightwidth = getWidth()/2;
-			}
-			else{
-					upheight = getHeight()/4;
-					downheight = getHeight()/2;
-					leftwidth = getWidth()/4;
-					rightwidth = getHeight()/2;
-			}
-	//}
-	}
 	public int getParentNode(){
 		return parentnode;
 	}
@@ -60,8 +31,33 @@ class OvalPrimitive extends JComponent{
 	@Override
 	public void paintComponent(Graphics g){
 		Graphics2D g2d = (Graphics2D)g;
-	//	updatemeasures();
-		g2d.fillRect(leftwidth+pathw1,upheight+pathh1,rightwidth+pathw2,downheight+pathh2);
+		g2d.setStroke(new BasicStroke(5f));
+		for(Integer sidesn : SidesNumbers){
+			switch(sidesn){
+				case (0):
+					g2d.drawLine(getWidth()/2,getHeight()/2,getWidth()/2,0);
+					break;
+				case (2):
+					g2d.drawLine(getWidth()/2,getHeight()/2,getWidth()/2,getHeight());
+					break;
+				case (1):
+					g2d.drawLine(0,getHeight()/2,getWidth()/2,getHeight()/2);
+					break;
+				case (3):
+					g2d.drawLine(getWidth()/2,getHeight()/2,getWidth(),getHeight()/2);
+					break;
+				default:
+					break;
+			}
+		}
+		g2d.fillOval(getWidth()/4,getHeight()/4,getWidth()/2,getHeight()/2);
+			// if(getWidth()<getHeight()){//if you want circles
+			// 	g2d.fillOval(getWidth()/4,getHeight()/4,getWidth()/2,getWidth()/2);
+			// }
+			// else{
+			// 	g2d.fillOval(getWidth()/4,getHeight()/4,getHeight()/2,getHeight()/2);
+			// }
+
 	}
 }
 
@@ -222,6 +218,14 @@ class MazeAlgo{
 			graph.nodes.get(nowPointIndex).setConnected(true);
 			graph.nodes.get(nowPointIndex).setForeground(Color.green);
 			connectnodes(lastPointIndex, nowPointIndex);
+
+			if(graph.nodes.get(lastPointIndex).getForeground() == Color.red)
+				graph.nodes.get(lastPointIndex).setForeground(Color.yellow);
+			else{
+				if(graph.nodes.get(lastPointIndex).getForeground() == Color.yellow)
+					graph.nodes.get(lastPointIndex).setForeground(Color.white);
+				graph.nodes.get(lastPointIndex).setForeground(Color.red);
+				}
 		//	connectedlog(); //log connected nodes
 			lastPointIndex = nowPointIndex;
 			if(graph.n*graph.n-counter!=1)
@@ -230,36 +234,43 @@ class MazeAlgo{
 				lastPointIndex = randomside.getnewLastPointIndex();
 			}
 			counter++;
-			try{Thread.sleep(graph.AnimationSpeed);} catch(InterruptedException ex){}
+			//try{Thread.sleep(graph.AnimationSpeed);} catch(InterruptedException ex){} //uncomment to change AnimationSpeed
 		}
-
+		graph.nodes.get(graph.startPoint).setForeground(Color.blue);
+		graph.nodes.get(nowPointIndex).setForeground(Color.blue);
 		System.out.println("Ticks "+ counter);
 	}
 
 	public void connectnodes(int last, int now){
-		graph.nodes.get(now).updatemeasures();
-		graph.nodes.get(last).updatemeasures();
+		System.out.println("POINTS "+last+" "+now);
 		switch(now-last){
 			case(1):
-				graph.nodes.get(now).pathw1 = -graph.nodes.get(now).getWidth()/4;
-				graph.nodes.get(now).pathw2 = graph.nodes.get(now).getWidth()/4;
-				graph.nodes.get(last).pathw2 = graph.nodes.get(last).getWidth()/4;
+				graph.nodes.get(now).SidesNumbers.add(1);
+				graph.nodes.get(last).SidesNumbers.add(3);
 				break;
 			case(-1):
-				graph.nodes.get(last).pathw1 = -graph.nodes.get(last).getWidth()/4;
-				graph.nodes.get(last).pathw2 = graph.nodes.get(last).getWidth()/4;
-				graph.nodes.get(now).pathw2 = graph.nodes.get(now).getWidth()/4;
+				graph.nodes.get(now).SidesNumbers.add(3);
+				graph.nodes.get(last).SidesNumbers.add(1);
+				break;
+			case(graph.n):
+				graph.nodes.get(now).SidesNumbers.add(0);
+				graph.nodes.get(last).SidesNumbers.add(2);
+				break;
+			case(-graph.n):
+				graph.nodes.get(now).SidesNumbers.add(2);
+				graph.nodes.get(last).SidesNumbers.add(0);
 				break;
 		}
+
 	}
 }
 public class graph{
 	public static int WidthSize = 500;
 	public static int HeightSize = 400;
-	public static int AnimationSpeed = 50;
+	public static int AnimationSpeed = 0;
 	public static ArrayList<OvalPrimitive> nodes = new ArrayList<>();
-	public static int n = 10;
-	public static int startPoint = 0;
+	public static final int n = 30;
+	public static int startPoint = new Random().nextInt(n*n);
 	public static int nowPoint = startPoint;
 	public static NodesPanel nodespanel = new NodesPanel();
 	public static ShapeFrame shframe = new ShapeFrame();

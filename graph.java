@@ -211,7 +211,7 @@ class MazeAlgo{
 		private int lastPointIndex = nowPointIndex;
 		RandomSide randomside = new RandomSide();
 		private int counter = 0;
-
+		private ArrayList<Integer> tails = new ArrayList<>();
 	public void BuildMaze(){
 		while(counter<graph.n*graph.n){
 			graph.nodes.get(nowPointIndex).setParentNode(lastPointIndex);
@@ -226,18 +226,20 @@ class MazeAlgo{
 					graph.nodes.get(lastPointIndex).setForeground(Color.white);
 				graph.nodes.get(lastPointIndex).setForeground(Color.red);
 				}
+
 		//	connectedlog(); //log connected nodes
 			lastPointIndex = nowPointIndex;
 			if(graph.n*graph.n-counter!=1)
 				nowPointIndex = randomside.nextRandomSide(nowPointIndex);
 			if(randomside.backsided()){
+				tails.add(lastPointIndex);
 				lastPointIndex = randomside.getnewLastPointIndex();
 			}
 			counter++;
 			//try{Thread.sleep(graph.AnimationSpeed);} catch(InterruptedException ex){} //uncomment to change AnimationSpeed
 		}
 		graph.nodes.get(graph.startPoint).setForeground(Color.blue);
-		graph.nodes.get(nowPointIndex).setForeground(Color.blue);
+		graph.nodes.get(tails.get(new Random().nextInt(tails.size()))).setForeground(Color.blue);
 		System.out.println("Ticks "+ counter);
 	}
 
@@ -264,25 +266,26 @@ class MazeAlgo{
 
 	}
 }
+//green color - tails; yellow - fork; red - just maze;
 public class graph{
-	public static int WidthSize = 500;
+	public static int WidthSize = 500;//Window size
 	public static int HeightSize = 400;
-	public static int AnimationSpeed = 0;
+	public static int AnimationSpeed = 0;//Drawing speed, Uncomment in code if needed
 	public static ArrayList<OvalPrimitive> nodes = new ArrayList<>();
-	public static final int n = 30;
-	public static int startPoint = new Random().nextInt(n*n);
+	public static final int n = 30;//It`s a square maze, so it`s length of one side
+	public static int startPoint = new Random().nextInt(n*n);//Maze start point. End point generates randomly choosing from tails.
 	public static int nowPoint = startPoint;
 	public static NodesPanel nodespanel = new NodesPanel();
-	public static ShapeFrame shframe = new ShapeFrame();
+	public static ShapeFrame shframe;//Window gui
 
 	public static void main(String[] args){
+		SwingUtilities.invokeLater(new Runnable() {
+      @Override
+      public void run() {
+				shframe = new ShapeFrame();
+      }
+    });
 		MazeAlgo maze = new MazeAlgo();
 		maze.BuildMaze();
-	//	JOptionPane.showMessageDialog(null, randomside.nextRandomSide(15));
-		// for(OvalPrimitive node : nodes){
-		// 	node.setForeground(Color.green);
-		// 	try{Thread.sleep(500);} catch(InterruptedException ex){}
-		// 	node.setForeground(Color.white);
-		// }
 	}
 }
